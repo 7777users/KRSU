@@ -1,0 +1,24 @@
+{
+  "application": "Oblako Manager",
+  "schema_version": 1,
+  "source_folder": "C:\\Users\\admin\\Desktop\\KRSU",
+  "github": {
+    "account": "7777users",
+    "repository": "KRSU"
+  },
+  "version": 1,
+  "last_sync": "2026-08-08T14:01:24Z",
+  "updated_at": "2026-08-08T14:03:01Z",
+  "logs": [
+    {
+      "timestamp": "2026-08-08T13:56:08Z",
+      "event": "Настройки сохранены",
+      "details": ""
+    },
+    {
+      "timestamp": "2026-08-08T14:03:01Z",
+      "event": "Репозиторий подключён",
+      "details": "7777users/KRSU"
+    }
+  ]
+}
