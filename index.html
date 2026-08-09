@@ -66,10 +66,30 @@
         .preview-box { margin-top: 20px; width: 100%; text-align: center; }
         .preview-box img, .preview-box video { max-width: 100%; max-height: 60vh; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
         .preview-box pre { text-align: left; background: #F9F9FB; padding: 20px; border-radius: 12px; border: 1px solid #E5E5EA; overflow-x: auto; font-size: 14px; max-height: 60vh; white-space: pre-wrap; color: #1D1D1F; }
+        
+        /* PIN Overlay Styles */
+        #pin-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #F5F5F7; display: flex; justify-content: center; align-items: center; z-index: 1000; flex-direction: column; }
+        .pin-box { background: #FFFFFF; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); text-align: center; max-width: 400px; width: 90%; }
+        .pin-box h2 { margin-top: 0; color: #1D1D1F; font-size: 22px; }
+        .pin-input { width: 100%; padding: 15px; border-radius: 12px; border: 2px solid #E5E5EA; font-size: 20px; text-align: center; letter-spacing: 5px; margin-bottom: 20px; outline: none; transition: border-color 0.2s; }
+        .pin-input:focus { border-color: #0A84FF; }
+        .pin-btn { background: #0A84FF; color: #FFFFFF; border: none; padding: 15px 30px; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; width: 100%; transition: background 0.2s; }
+        .pin-btn:hover { background: #0B6FE0; }
+        .pin-error { color: #FF3B30; font-size: 14px; margin-top: 15px; display: none; }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div id="pin-overlay">
+        <div class="pin-box">
+            <h2>Введите ПИН-код</h2>
+            <p style="color: #6E7076; font-size: 14px; margin-bottom: 25px;">Для доступа к файлам требуется авторизация</p>
+            <input type="password" id="pin-input" class="pin-input" placeholder="••••" maxlength="10">
+            <button class="pin-btn" onclick="checkPin()">Войти</button>
+            <div id="pin-error" class="pin-error">Неверный ПИН-код</div>
+        </div>
+    </div>
+
+    <div class="container" id="main-content" style="display: none;">
         <div class="header">
             <h1>☁️ Мои файлы</h1>
             <span class="repo-badge">7777users / KRSU</span>
@@ -114,8 +134,25 @@
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => handleSearch(e.target.value.trim()), 400); 
         });
-        
-        loadPath(currentPath);
+
+        document.getElementById('pin-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') checkPin();
+        });
+
+        function checkPin() {
+            const input = document.getElementById('pin-input').value;
+            // 9797 obfuscated: (9797 * 3) - 1000 = 28391
+            if ((Number(input) * 3) - 1000 === 28391) {
+                document.getElementById('pin-overlay').style.display = 'none';
+                document.getElementById('main-content').style.display = 'block';
+                loadPath(currentPath);
+            } else {
+                const errorEl = document.getElementById('pin-error');
+                errorEl.style.display = 'block';
+                setTimeout(() => errorEl.style.display = 'none', 3000);
+                document.getElementById('pin-input').value = '';
+            }
+        }
 
         async function loadPath(path) {
             currentPath = path;
