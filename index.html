@@ -2,9 +2,102 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Мое Облако</title>
+    <meta name="viewport" content="width=device-width, initial-width=1.0">
+    <title>Мое Облако - KRSU</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #EFF2F7; color: #1C1C1E; margin: 0; padding: 40px 20px; }
+        .container { max-width: 860px; margin: 0 auto; background: #FFFFFF; padding: 30px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #EFF2F7; padding-bottom: 20px; margin-bottom: 20px; }
+        h1 { color: #1C1C1E; font-size: 26px; margin: 0; }
+        .repo-badge { background: #E5E5EA; color: #6E7076; padding: 6px 12px; border-radius: 8px; font-size: 14px; font-weight: bold; }
+        .file-list { list-style: none; padding: 0; margin: 0; }
+        .file-item { display: flex; justify-content: space-between; padding: 16px; border-bottom: 1px solid #EFF2F7; align-items: center; transition: background-color 0.2s; }
+        .file-item:hover { background-color: #F8F9FA; }
+        .file-item:last-child { border-bottom: none; }
+        .file-name { font-weight: 600; color: #1C1C1E; display: flex; align-items: center; gap: 12px; font-size: 15px; }
+        .file-icon { font-size: 20px; }
+        .file-actions { display: flex; align-items: center; gap: 20px; }
+        .file-size { color: #6E7076; font-size: 14px; font-weight: 500; min-width: 70px; text-align: right; }
+        .download-btn { background: #0A84FF; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; text-decoration: none; font-size: 14px; font-weight: bold; transition: background 0.2s; }
+        .download-btn:hover { background: #0B6FE0; }
+        .empty-state { text-align: center; color: #6E7076; padding: 40px 0; }
+    </style>
 </head>
 <body>
-    <h1>Загрузка дизайна...</h1>
+    <div class="container">
+        <div class="header">
+            <h1>☁️ Мои файлы</h1>
+            <span class="repo-badge">7777users / KRSU</span>
+        </div>
+        <ul class="file-list" id="file-list">
+            <div class="empty-state">Подключение к облаку...</div>
+        </ul>
+    </div>
+
+    <script>
+        const username = "7777users";
+        const repo = "KRSU";
+        // Обращаемся к GitHub API. Файлы лежат внутри папки с названием репозитория
+        const apiUrl = `https://api.github.com/repos/${username}/${repo}/contents/${repo}`;
+
+        async function loadFiles() {
+            try {
+                const response = await fetch(apiUrl);
+                if (!response.ok) throw new Error("Не удалось загрузить файлы");
+                const files = await response.json();
+                
+                const list = document.getElementById("file-list");
+                list.innerHTML = "";
+                
+                if (files.length === 0) {
+                    list.innerHTML = '<div class="empty-state">В этом облаке пока нет файлов.</div>';
+                    return;
+                }
+
+                // Сортируем: сначала папки, потом файлы
+                files.sort((a, b) => {
+                    if (a.type === b.type) return a.name.localeCompare(b.name);
+                    return a.type === "dir" ? -1 : 1;
+                });
+                
+                files.forEach(file => {
+                    // Игнорируем системные и скрытые файлы
+                    if (file.name.startsWith(".")) return; 
+                    
+                    const li = document.createElement("li");
+                    li.className = "file-item";
+                    
+                    const icon = file.type === "dir" ? "📁" : "📄";
+                    let sizeText = "";
+                    
+                    if (file.type === "file") {
+                        const kb = file.size / 1024;
+                        sizeText = kb > 1024 ? (kb / 1024).toFixed(1) + " MB" : kb.toFixed(1) + " KB";
+                    }
+                    
+                    const downloadBtn = file.type === "file" 
+                        ? `<a href="${file.download_url}" class="download-btn" target="_blank" download>Скачать</a>` 
+                        : `<span style="color: #6E7076; font-size: 13px; font-weight: bold; padding: 8px;">Папка</span>`;
+
+                    li.innerHTML = `
+                        <div class="file-name">
+                            <span class="file-icon">${icon}</span>
+                            ${file.name}
+                        </div>
+                        <div class="file-actions">
+                            <span class="file-size">${sizeText}</span>
+                            ${downloadBtn}
+                        </div>
+                    `;
+                    list.appendChild(li);
+                });
+            } catch (error) {
+                console.error(error);
+                document.getElementById("file-list").innerHTML = '<div class="empty-state">Ошибка доступа. Убедитесь, что репозиторий публичный и файлы загружены.</div>';
+            }
+        }
+
+        loadFiles();
+    </script>
 </body>
 </html>
