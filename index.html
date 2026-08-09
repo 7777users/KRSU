@@ -34,35 +34,39 @@
         /* Контейнер файлов */
         .file-container { display: flex; gap: 16px; }
         
-        /* РЕЖИМ СЕТКИ (Теперь по умолчанию и красивее) */
+        /* РЕЖИМ СЕТКИ */
         .file-container.grid-view { flex-direction: row; flex-wrap: wrap; }
-        .grid-view .file-item { display: flex; flex-direction: column; align-items: center; justify-content: center; width: calc(25% - 12px); padding: 30px 15px; background: #FFFFFF; border: 1px solid #E5E5EA; border-radius: 16px; cursor: pointer; transition: all 0.2s ease; text-align: center; position: relative; }
+        .grid-view .file-item { display: flex; flex-direction: column; align-items: center; justify-content: center; width: calc(25% - 12px); padding: 30px 15px 55px 15px; background: #FFFFFF; border: 1px solid #E5E5EA; border-radius: 16px; cursor: pointer; transition: all 0.2s ease; text-align: center; position: relative; }
         @media (max-width: 850px) { .grid-view .file-item { width: calc(33.33% - 11px); } }
         @media (max-width: 550px) { .grid-view .file-item { width: calc(50% - 8px); } }
         
         .grid-view .file-item:hover { border-color: #0A84FF; box-shadow: 0 8px 24px rgba(10, 132, 255, 0.12); transform: translateY(-3px); }
         .grid-view .file-icon { font-size: 48px; margin-bottom: 15px; }
         .grid-view .file-name { font-weight: 600; font-size: 14px; word-break: break-word; line-height: 1.4; color: #1D1D1F; margin-bottom: 8px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .grid-view .file-size { color: #8E8E93; font-size: 13px; font-weight: 500; margin-bottom: 15px; }
+        .grid-view .file-size { color: #8E8E93; font-size: 13px; font-weight: 500; margin-bottom: 0; }
         
-        /* Кнопка скачивания в плитке появляется при наведении */
-        .grid-view .download-btn { opacity: 0; transform: translateY(10px); position: absolute; bottom: 15px; width: calc(100% - 30px); text-align: center; }
-        .grid-view .file-item:hover .download-btn { opacity: 1; transform: translateY(0); }
-        .grid-view .file-item.is-dir .download-btn { display: none; }
-
+        /* Кнопки действий (Сетка) */
+        .grid-view .action-buttons { opacity: 0; transform: translateY(10px); position: absolute; bottom: 12px; width: calc(100% - 24px); left: 12px; display: flex; gap: 6px; transition: all 0.2s ease; }
+        .grid-view .file-item:hover .action-buttons { opacity: 1; transform: translateY(0); }
+        .grid-view .action-buttons .download-btn { flex: 1; padding: 8px 2px; font-size: 12px; text-align: center; display: flex; justify-content: center; align-items: center; gap: 4px; }
+        
         /* РЕЖИМ СПИСКА */
         .file-container.list-view { flex-direction: column; gap: 8px; }
         .list-view .file-item { display: flex; justify-content: space-between; padding: 14px 20px; background: #FFFFFF; border: 1px solid #E5E5EA; align-items: center; transition: 0.2s; cursor: pointer; border-radius: 12px; }
         .list-view .file-item:hover { border-color: #0A84FF; background-color: #F8F9FA; }
         .list-view .file-name { font-weight: 600; display: flex; align-items: center; gap: 15px; font-size: 15px; color: #1D1D1F; }
         .list-view .file-icon { font-size: 24px; }
-        .list-view .file-actions { display: flex; align-items: center; gap: 25px; }
+        .list-view .file-actions { display: flex; align-items: center; gap: 20px; }
         .list-view .file-size { color: #8E8E93; font-size: 14px; font-weight: 500; min-width: 80px; text-align: right; }
+        .list-view .action-buttons { display: flex; gap: 8px; align-items: center; }
 
-        .download-btn { background: #F2F2F7; color: #1D1D1F; border: none; padding: 8px 16px; border-radius: 10px; font-size: 13px; font-weight: 700; transition: all 0.2s; text-decoration: none; display: inline-block; }
+        /* Стили кнопок */
+        .download-btn { background: #F2F2F7; color: #1D1D1F; border: none; padding: 8px 16px; border-radius: 10px; font-size: 13px; font-weight: 700; transition: all 0.2s; text-decoration: none; display: inline-block; cursor: pointer; }
         .download-btn:hover { background: #E5E5EA; }
         .download-btn.primary-btn { background: #0A84FF; color: #FFF; }
         .download-btn.primary-btn:hover { background: #0B6FE0; box-shadow: 0 4px 12px rgba(10, 132, 255, 0.3); }
+        .share-btn { background: #E5E5EA; color: #1D1D1F; }
+        .share-btn:hover { background: #D1D1D6; }
         
         .empty-state { text-align: center; color: #8E8E93; padding: 60px 0; width: 100%; font-size: 16px; font-weight: 500; }
 
@@ -83,14 +87,12 @@
             <span class="repo-badge">7777users / KRSU</span>
         </div>
         
-        <!-- Поиск теперь сверху -->
         <div class="search-container">
             <input type="text" id="search-input" class="search-bar" placeholder="Глобальный поиск файлов по всему облаку...">
         </div>
 
         <div class="toolbar">
             <div class="breadcrumbs" id="breadcrumbs"></div>
-            <!-- Плитка теперь первая -->
             <div class="view-toggle">
                 <button class="view-btn active" onclick="setViewMode('grid')" id="btn-grid">Плитка</button>
                 <button class="view-btn" onclick="setViewMode('list')" id="btn-list">Список</button>
@@ -118,18 +120,16 @@
         
         let currentPath = rootRepo; 
         let allFiles = []; 
-        let currentViewMode = 'grid'; // Плитка по умолчанию
+        let currentViewMode = 'grid'; 
         let searchTimeout;
 
-        // Инициализация
         document.getElementById('search-input').addEventListener('input', (e) => {
             clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => handleSearch(e.target.value.trim()), 400); // Глобальный поиск с задержкой
+            searchTimeout = setTimeout(() => handleSearch(e.target.value.trim()), 400); 
         });
         
         loadPath(currentPath);
 
-        // ОБЫЧНАЯ ЗАГРУЗКА ПАПКИ
         async function loadPath(path) {
             currentPath = path;
             updateBreadcrumbs();
@@ -154,29 +154,25 @@
             }
         }
 
-        // ГЛОБАЛЬНЫЙ ПОИСК (API: git/trees)
         async function handleSearch(query) {
             if (!query) {
-                loadPath(currentPath); // Если поиск пуст, возвращаемся в текущую папку
+                loadPath(currentPath);
                 return;
             }
             
             document.getElementById("file-container").innerHTML = '<div class="empty-state">Поиск по всему облаку... 🔍</div>';
             try {
-                // Рекурсивный запрос всего дерева репозитория
                 const res = await fetch(`https://api.github.com/repos/${username}/${rootRepo}/git/trees/main?recursive=1`);
                 const data = await res.json();
                 
                 if (!data.tree) throw new Error("No tree");
 
-                // Ищем совпадения в путях файлов (игнорируем системные папки .git)
                 let results = data.tree.filter(f => 
                     f.type === 'blob' && 
                     !f.path.includes('.git/') &&
                     f.path.toLowerCase().includes(query.toLowerCase())
                 );
                 
-                // Преобразуем ответ дерева в стандартный формат для функции рендера
                 const searchFiles = results.map(f => ({
                     name: f.path.split('/').pop(),
                     path: f.path,
@@ -191,7 +187,29 @@
             }
         }
 
-        // РЕНДЕР ФАЙЛОВ
+        // Web Share API функция
+        async function shareFile(name, url, event) {
+            event.stopPropagation();
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: name,
+                        text: `Смотри файл: ${name}`,
+                        url: url
+                    });
+                } catch (err) {
+                    console.error("Пользователь отменил шаринг или произошла ошибка:", err);
+                }
+            } else {
+                try {
+                    await navigator.clipboard.writeText(url);
+                    alert("Ссылка на файл скопирована в буфер обмена!");
+                } catch (err) {
+                    console.error("Ошибка копирования в буфер:", err);
+                }
+            }
+        }
+
         function renderFiles(filesToRender) {
             const container = document.getElementById("file-container");
             container.innerHTML = "";
@@ -214,14 +232,17 @@
                     sizeText = kb > 1024 ? (kb / 1024).toFixed(1) + " MB" : kb.toFixed(1) + " KB";
                 }
 
-                // ИСПРАВЛЕНИЕ: Точный контроль всплытия событий
                 item.onclick = (e) => {
                     if (isDir) loadPath(file.path);
                     else openPreview(file.name, file.download_url);
                 };
 
+                const shareBtnHtml = !isDir 
+                    ? `<button class="download-btn share-btn" onclick="shareFile('${file.name}', '${file.download_url}', event)">🔗 Поделиться</button>` 
+                    : ``;
+                
                 const downloadBtnHtml = !isDir 
-                    ? `<a href="${file.download_url}" class="download-btn primary-btn" target="_blank" download onclick="event.stopPropagation()">Скачать</a>` 
+                    ? `<a href="${file.download_url}" class="download-btn primary-btn" target="_blank" download onclick="event.stopPropagation()">⬇ Скачать</a>` 
                     : ``;
 
                 if (currentViewMode === 'list') {
@@ -229,7 +250,7 @@
                         <div class="file-name"><span class="file-icon">${icon}</span>${file.name}</div>
                         <div class="file-actions">
                             ${isDir ? `<span class="file-size" style="font-weight:700;">Папка</span>` : `<span class="file-size">${sizeText}</span>`}
-                            ${downloadBtnHtml}
+                            <div class="action-buttons">${shareBtnHtml}${downloadBtnHtml}</div>
                         </div>
                     `;
                 } else {
@@ -237,7 +258,7 @@
                         <div class="file-icon">${icon}</div>
                         <div class="file-name">${file.name}</div>
                         ${!isDir ? `<div class="file-size">${sizeText}</div>` : ''}
-                        ${downloadBtnHtml}
+                        ${!isDir ? `<div class="action-buttons">${shareBtnHtml}${downloadBtnHtml}</div>` : ''}
                     `;
                 }
                 container.appendChild(item);
@@ -257,12 +278,11 @@
                 
                 const span = document.createElement("span");
                 span.className = "breadcrumb-item";
-                // Вместо "Корень" используем имя рабочей папки (название репо)
                 span.textContent = index === 0 ? "🏠 " + rootRepo : part;
                 
                 const pathSnapshot = buildPath;
                 span.onclick = () => {
-                    document.getElementById('search-input').value = ""; // Сброс поиска при клике на навигацию
+                    document.getElementById('search-input').value = ""; 
                     loadPath(pathSnapshot);
                 };
                 
@@ -282,7 +302,6 @@
             document.getElementById('btn-grid').className = mode === 'grid' ? 'view-btn active' : 'view-btn';
             document.getElementById('btn-list').className = mode === 'list' ? 'view-btn active' : 'view-btn';
             document.getElementById('file-container').className = `file-container ${mode}-view`;
-            // Перерисовываем с учетом текущих файлов (либо папка, либо результаты поиска)
             const isSearching = document.getElementById('search-input').value.trim() !== "";
             if (!isSearching) renderFiles(allFiles);
             else handleSearch(document.getElementById('search-input').value.trim());
@@ -301,7 +320,6 @@
             return icons[ext] || '📄';
         }
 
-        // ── ЛОГИКА ПРЕДПРОСМОТРА ──
         async function openPreview(name, url) {
             const modal = document.getElementById('preview-modal');
             document.getElementById('modal-title').textContent = name;
@@ -309,8 +327,13 @@
             const footer = document.getElementById('modal-footer');
             
             body.innerHTML = '<div class="empty-state" style="padding: 20px;">Загрузка файла...</div>';
-            // И здесь тоже блокируем всплытие при скачивании из модального окна
-            footer.innerHTML = `<a href="${url}" class="download-btn primary-btn" style="padding: 12px 30px; font-size:15px;" target="_blank" download onclick="event.stopPropagation()">⬇ Скачать файл</a>`;
+            
+            footer.innerHTML = `
+                <div style="display: flex; gap: 15px; justify-content: center;">
+                    <button class="download-btn share-btn" style="padding: 12px 25px; font-size:15px;" onclick="shareFile('${name}', '${url}', event)">🔗 Поделиться</button>
+                    <a href="${url}" class="download-btn primary-btn" style="padding: 12px 25px; font-size:15px;" target="_blank" download onclick="event.stopPropagation()">⬇ Скачать файл</a>
+                </div>
+            `;
             modal.style.display = 'flex';
 
             const ext = name.split('.').pop().toLowerCase();
