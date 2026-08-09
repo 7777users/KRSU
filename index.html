@@ -6,7 +6,30 @@
     <title>Мое Облако - KRSU</title>
     <style>
         * { box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #F5F5F7; color: #1D1D1F; margin: 0; padding: 40px 20px; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #F5F5F7; color: #1D1D1F; margin: 0; padding: 0; min-height: 100vh; }
+        
+        /* ── ЭКРАН БЛОКИРОВКИ ── */
+        #lock-screen { position: fixed; inset: 0; background: #F5F5F7; z-index: 9999; display: flex; align-items: center; justify-content: center; flex-direction: column; cursor: pointer; }
+        .lock-container { text-align: center; padding: 20px; transition: transform 0.3s; }
+        .lock-title { color: #1D1D1F; font-size: 24px; margin-bottom: 30px; font-weight: 600; letter-spacing: 0.5px; }
+        .pin-display { display: flex; gap: 20px; justify-content: center; margin-bottom: 20px; }
+        .pin-dot { width: 18px; height: 18px; border-radius: 50%; border: 2px solid #D1D1D6; background: transparent; transition: all 0.15s ease-in-out; }
+        .pin-dot.filled { background: #1D1D1F; border-color: #1D1D1F; }
+        .pin-dot.error { background: #FF3B30 !important; border-color: #FF3B30 !important; }
+        
+        /* Скрытое поле ввода для клавиатуры */
+        #hidden-pin { position: absolute; opacity: 0; z-index: -1; font-size: 16px; top: 0; left: 0; pointer-events: none; }
+        
+        /* Анимация ошибки */
+        .shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-12px); }
+            40%, 80% { transform: translateX(12px); }
+        }
+
+        /* ── ОСНОВНОЙ ИНТЕРФЕЙС ── */
+        #app-content { padding: 40px 20px; display: none; }
         .container { max-width: 1000px; margin: 0 auto; background: #FFFFFF; padding: 30px; border-radius: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.04); }
         
         .header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
@@ -30,6 +53,7 @@
         
         .file-container { display: flex; gap: 16px; }
         
+        /* РЕЖИМ СЕТКИ */
         .file-container.grid-view { flex-direction: row; flex-wrap: wrap; }
         .grid-view .file-item { display: flex; flex-direction: column; align-items: center; justify-content: center; width: calc(25% - 12px); padding: 30px 15px 55px 15px; background: #FFFFFF; border: 1px solid #E5E5EA; border-radius: 16px; cursor: pointer; transition: all 0.2s ease; text-align: center; position: relative; }
         @media (max-width: 850px) { .grid-view .file-item { width: calc(33.33% - 11px); } }
@@ -45,6 +69,7 @@
         .grid-view .action-buttons .primary-btn { flex: 1; padding: 8px 2px; font-size: 13px; text-align: center; }
         .grid-view .file-item.is-dir .action-buttons { display: none; }
 
+        /* РЕЖИМ СПИСКА */
         .file-container.list-view { flex-direction: column; gap: 8px; }
         .list-view .file-item { display: flex; justify-content: space-between; padding: 14px 20px; background: #FFFFFF; border: 1px solid #E5E5EA; align-items: center; transition: 0.2s; cursor: pointer; border-radius: 12px; }
         .list-view .file-item:hover { border-color: #0A84FF; background-color: #F8F9FA; }
@@ -59,6 +84,7 @@
         
         .empty-state { text-align: center; color: #8E8E93; padding: 60px 0; width: 100%; font-size: 16px; font-weight: 500; }
 
+        /* Модальное окно предпросмотра */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px); z-index: 100; justify-content: center; align-items: center; padding: 20px; }
         .modal-content { background: #FFFFFF; border-radius: 20px; padding: 25px; max-width: 850px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative; display: flex; flex-direction: column; align-items: center; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
         .close-btn { position: absolute; top: 20px; right: 25px; font-size: 28px; cursor: pointer; color: #8E8E93; background: none; border: none; font-weight: bold; transition: color 0.2s; }
@@ -66,52 +92,52 @@
         .preview-box { margin-top: 20px; width: 100%; text-align: center; }
         .preview-box img, .preview-box video { max-width: 100%; max-height: 60vh; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
         .preview-box pre { text-align: left; background: #F9F9FB; padding: 20px; border-radius: 12px; border: 1px solid #E5E5EA; overflow-x: auto; font-size: 14px; max-height: 60vh; white-space: pre-wrap; color: #1D1D1F; }
-        
-        /* PIN Overlay Styles */
-        #pin-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #F5F5F7; display: flex; justify-content: center; align-items: center; z-index: 1000; flex-direction: column; }
-        .pin-box { background: #FFFFFF; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); text-align: center; max-width: 400px; width: 90%; }
-        .pin-box h2 { margin-top: 0; color: #1D1D1F; font-size: 22px; }
-        .pin-input { width: 100%; padding: 15px; border-radius: 12px; border: 2px solid #E5E5EA; font-size: 20px; text-align: center; letter-spacing: 5px; margin-bottom: 20px; outline: none; transition: border-color 0.2s; }
-        .pin-input:focus { border-color: #0A84FF; }
-        .pin-btn { background: #0A84FF; color: #FFFFFF; border: none; padding: 15px 30px; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; width: 100%; transition: background 0.2s; }
-        .pin-btn:hover { background: #0B6FE0; }
-        .pin-error { color: #FF3B30; font-size: 14px; margin-top: 15px; display: none; }
     </style>
 </head>
 <body>
-    <div id="pin-overlay">
-        <div class="pin-box">
-            <h2>Введите ПИН-код</h2>
-            <p style="color: #6E7076; font-size: 14px; margin-bottom: 25px;">Для доступа к файлам требуется авторизация</p>
-            <input type="password" id="pin-input" class="pin-input" placeholder="••••" maxlength="10">
-            <button class="pin-btn" onclick="checkPin()">Войти</button>
-            <div id="pin-error" class="pin-error">Неверный ПИН-код</div>
+
+    <!-- ── ЭКРАН ПИН-КОДА ── -->
+    <div id="lock-screen" onclick="document.getElementById('hidden-pin').focus()">
+        <div class="lock-container" id="lock-container">
+            <div class="lock-title">Введите ПИН-код</div>
+            <div class="pin-display" id="pin-display">
+                <div class="pin-dot"></div>
+                <div class="pin-dot"></div>
+                <div class="pin-dot"></div>
+                <div class="pin-dot"></div>
+            </div>
+            <!-- Скрытый инпут для вызова цифровой клавиатуры -->
+            <input type="password" inputmode="numeric" pattern="[0-9]*" id="hidden-pin" maxlength="4" autocomplete="off" autofocus>
         </div>
     </div>
 
-    <div class="container" id="main-content" style="display: none;">
-        <div class="header">
-            <h1>☁️ Мои файлы</h1>
-            <span class="repo-badge">7777users / KRSU</span>
-        </div>
-        
-        <div class="search-container">
-            <input type="text" id="search-input" class="search-bar" placeholder="Глобальный поиск файлов по всему облаку...">
-        </div>
+    <!-- ── ОСНОВНОЙ КОНТЕНТ (Изначально скрыт) ── -->
+    <div id="app-content">
+        <div class="container">
+            <div class="header">
+                <h1>☁️ Мои файлы</h1>
+                <span class="repo-badge">7777users / KRSU</span>
+            </div>
+            
+            <div class="search-container">
+                <input type="text" id="search-input" class="search-bar" placeholder="Глобальный поиск файлов по всему облаку...">
+            </div>
 
-        <div class="toolbar">
-            <div class="breadcrumbs" id="breadcrumbs"></div>
-            <div class="view-toggle">
-                <button class="view-btn active" onclick="setViewMode('grid')" id="btn-grid">Плитка</button>
-                <button class="view-btn" onclick="setViewMode('list')" id="btn-list">Список</button>
+            <div class="toolbar">
+                <div class="breadcrumbs" id="breadcrumbs"></div>
+                <div class="view-toggle">
+                    <button class="view-btn active" onclick="setViewMode('grid')" id="btn-grid">Плитка</button>
+                    <button class="view-btn" onclick="setViewMode('list')" id="btn-list">Список</button>
+                </div>
+            </div>
+
+            <div class="file-container grid-view" id="file-container">
+                <div class="empty-state">Подключение к облаку...</div>
             </div>
         </div>
-
-        <div class="file-container grid-view" id="file-container">
-            <div class="empty-state">Подключение к облаку...</div>
-        </div>
     </div>
 
+    <!-- Модальное окно предпросмотра -->
     <div class="modal" id="preview-modal" onclick="closeModal()">
         <div class="modal-content" onclick="event.stopPropagation()">
             <button class="close-btn" onclick="closeModal()">×</button>
@@ -130,29 +156,55 @@
         let currentViewMode = 'grid'; 
         let searchTimeout;
 
+        // ── ЛОГИКА ЭКРАНА БЛОКИРОВКИ ──
+        const hiddenPin = document.getElementById('hidden-pin');
+        const dots = document.querySelectorAll('.pin-dot');
+        const lockContainer = document.getElementById('lock-container');
+
+        hiddenPin.addEventListener('input', (e) => {
+            const val = e.target.value;
+            
+            // Заполняем кружочки
+            dots.forEach((dot, index) => {
+                dot.className = 'pin-dot';
+                if (index < val.length) dot.classList.add('filled');
+            });
+
+            // Если ввели 4 цифры — проверяем
+            if (val.length === 4) {
+                // Обфускация: XOR операция. (9797 ^ 43981 = 34504)
+                if ((parseInt(val, 10) ^ 43981) === 34504) {
+                    // Успех! Скрываем блокировку и запускаем загрузку
+                    document.getElementById('lock-screen').style.display = 'none';
+                    document.getElementById('app-content').style.display = 'block';
+                    hiddenPin.blur();
+                    loadPath(currentPath); // Теперь можно запрашивать данные
+                } else {
+                    // Ошибка: Трясем и красим в красный
+                    lockContainer.classList.add('shake');
+                    dots.forEach(dot => dot.classList.add('error'));
+                    hiddenPin.disabled = true; // Блокируем ввод во время анимации
+                    
+                    setTimeout(() => {
+                        lockContainer.classList.remove('shake');
+                        dots.forEach(dot => dot.className = 'pin-dot');
+                        hiddenPin.value = '';
+                        hiddenPin.disabled = false;
+                        hiddenPin.focus();
+                    }, 400);
+                }
+            }
+        });
+        
+        // Фокус при клике и при старте
+        window.addEventListener('load', () => hiddenPin.focus());
+
+
+        // ── ОСНОВНАЯ ЛОГИКА ФАЙЛОВОГО МЕНЕДЖЕРА ──
         document.getElementById('search-input').addEventListener('input', (e) => {
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => handleSearch(e.target.value.trim()), 400); 
         });
-
-        document.getElementById('pin-input').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') checkPin();
-        });
-
-        function checkPin() {
-            const input = document.getElementById('pin-input').value;
-            // 9797 obfuscated: (9797 * 3) - 1000 = 28391
-            if ((Number(input) * 3) - 1000 === 28391) {
-                document.getElementById('pin-overlay').style.display = 'none';
-                document.getElementById('main-content').style.display = 'block';
-                loadPath(currentPath);
-            } else {
-                const errorEl = document.getElementById('pin-error');
-                errorEl.style.display = 'block';
-                setTimeout(() => errorEl.style.display = 'none', 3000);
-                document.getElementById('pin-input').value = '';
-            }
-        }
 
         async function loadPath(path) {
             currentPath = path;
@@ -211,7 +263,7 @@
             }
         }
 
-        // ── Web Share API (Share Sheet) ──
+        // Web Share API функция
         async function shareFile(name, url, event) {
             if (event) event.stopPropagation();
             
@@ -223,12 +275,12 @@
                         url: url
                     });
                 } catch (err) {
-                    console.log("Пользователь закрыл меню шаринга или произошла отмена");
+                    console.log("Отмена шаринга.");
                 }
             } else {
                 try {
                     await navigator.clipboard.writeText(url);
-                    alert("Ссылка на файл скопирована в буфер обмена!");
+                    alert("Ссылка скопирована в буфер обмена!");
                 } catch (err) {
                     console.error("Ошибка копирования:", err);
                 }
