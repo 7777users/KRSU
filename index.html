@@ -106,12 +106,12 @@
                 <div class="pin-dot"></div>
                 <div class="pin-dot"></div>
             </div>
-            <!-- Скрытый инпут для вызова цифровой клавиатуры -->
+            <!-- Скрытый инпут для вызова клавиатуры -->
             <input type="password" inputmode="numeric" pattern="[0-9]*" id="hidden-pin" maxlength="4" autocomplete="off" autofocus>
         </div>
     </div>
 
-    <!-- ── ОСНОВНОЙ КОНТЕНТ (Изначально скрыт) ── -->
+    <!-- ── ОСНОВНОЙ КОНТЕНТ (Скрыт по умолчанию) ── -->
     <div id="app-content">
         <div class="container">
             <div class="header">
@@ -137,7 +137,6 @@
         </div>
     </div>
 
-    <!-- Модальное окно предпросмотра -->
     <div class="modal" id="preview-modal" onclick="closeModal()">
         <div class="modal-content" onclick="event.stopPropagation()">
             <button class="close-btn" onclick="closeModal()">×</button>
@@ -164,26 +163,22 @@
         hiddenPin.addEventListener('input', (e) => {
             const val = e.target.value;
             
-            // Заполняем кружочки
             dots.forEach((dot, index) => {
                 dot.className = 'pin-dot';
                 if (index < val.length) dot.classList.add('filled');
             });
 
-            // Если ввели 4 цифры — проверяем
             if (val.length === 4) {
-                // Обфускация: XOR операция. (9797 ^ 43981 = 34504)
+                // Обфускация пароля 9797
                 if ((parseInt(val, 10) ^ 43981) === 34504) {
-                    // Успех! Скрываем блокировку и запускаем загрузку
                     document.getElementById('lock-screen').style.display = 'none';
                     document.getElementById('app-content').style.display = 'block';
                     hiddenPin.blur();
-                    loadPath(currentPath); // Теперь можно запрашивать данные
+                    loadPath(currentPath); // Загружаем файлы только после правильного пароля
                 } else {
-                    // Ошибка: Трясем и красим в красный
                     lockContainer.classList.add('shake');
                     dots.forEach(dot => dot.classList.add('error'));
-                    hiddenPin.disabled = true; // Блокируем ввод во время анимации
+                    hiddenPin.disabled = true;
                     
                     setTimeout(() => {
                         lockContainer.classList.remove('shake');
@@ -196,11 +191,9 @@
             }
         });
         
-        // Фокус при клике и при старте
         window.addEventListener('load', () => hiddenPin.focus());
 
-
-        // ── ОСНОВНАЯ ЛОГИКА ФАЙЛОВОГО МЕНЕДЖЕРА ──
+        // ── ОСНОВНАЯ ЛОГИКА ──
         document.getElementById('search-input').addEventListener('input', (e) => {
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => handleSearch(e.target.value.trim()), 400); 
@@ -263,7 +256,6 @@
             }
         }
 
-        // Web Share API функция
         async function shareFile(name, url, event) {
             if (event) event.stopPropagation();
             
