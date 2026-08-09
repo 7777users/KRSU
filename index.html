@@ -2,39 +2,34 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Мое Облако - KRSU</title>
     <style>
         * { box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #F5F5F7; color: #1D1D1F; margin: 0; padding: 40px 20px; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #F5F5F7; color: #1D1D1F; margin: 0; padding: 40px 20px; }
         .container { max-width: 1000px; margin: 0 auto; background: #FFFFFF; padding: 30px; border-radius: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.04); }
         
         .header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
         h1 { color: #1D1D1F; font-size: 26px; margin: 0; font-weight: 700; }
         .repo-badge { background: #F2F2F7; color: #6E7076; padding: 8px 14px; border-radius: 10px; font-size: 14px; font-weight: 600; }
         
-        /* Поиск */
         .search-container { margin-bottom: 25px; }
         .search-bar { width: 100%; padding: 14px 20px; border-radius: 12px; border: 2px solid #F2F2F7; background: #F9F9FB; font-size: 15px; outline: none; transition: all 0.2s ease; }
         .search-bar:focus { border-color: #0A84FF; background: #FFFFFF; box-shadow: 0 0 0 4px rgba(10, 132, 255, 0.1); }
         .search-bar::placeholder { color: #8E8E93; }
 
-        /* Панель инструментов */
         .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px; background: #F9F9FB; padding: 12px 20px; border-radius: 14px; }
         .breadcrumbs { font-size: 15px; font-weight: 600; color: #0A84FF; display: flex; align-items: center; gap: 6px; flex: 1; flex-wrap: wrap; }
         .breadcrumb-item { cursor: pointer; padding: 6px 10px; border-radius: 8px; transition: background 0.2s; }
         .breadcrumb-item:hover { background: #E5E5EA; }
         .separator { color: #8E8E93; }
         
-        /* Кнопки Плитка/Список */
         .view-toggle { display: flex; background: #E5E5EA; border-radius: 10px; padding: 3px; }
         .view-btn { background: transparent; border: none; padding: 8px 16px; cursor: pointer; color: #6E7076; font-weight: 600; font-size: 14px; border-radius: 8px; transition: all 0.2s; }
         .view-btn.active { background: #FFFFFF; color: #1D1D1F; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
         
-        /* Контейнер файлов */
         .file-container { display: flex; gap: 16px; }
         
-        /* РЕЖИМ СЕТКИ */
         .file-container.grid-view { flex-direction: row; flex-wrap: wrap; }
         .grid-view .file-item { display: flex; flex-direction: column; align-items: center; justify-content: center; width: calc(25% - 12px); padding: 30px 15px 55px 15px; background: #FFFFFF; border: 1px solid #E5E5EA; border-radius: 16px; cursor: pointer; transition: all 0.2s ease; text-align: center; position: relative; }
         @media (max-width: 850px) { .grid-view .file-item { width: calc(33.33% - 11px); } }
@@ -45,13 +40,11 @@
         .grid-view .file-name { font-weight: 600; font-size: 14px; word-break: break-word; line-height: 1.4; color: #1D1D1F; margin-bottom: 8px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
         .grid-view .file-size { color: #8E8E93; font-size: 13px; font-weight: 500; margin-bottom: 0; }
         
-        /* Кнопки действий (Сетка) */
         .grid-view .action-buttons { opacity: 0; transform: translateY(10px); position: absolute; bottom: 12px; width: calc(100% - 24px); left: 12px; display: flex; transition: all 0.2s ease; }
         .grid-view .file-item:hover .action-buttons { opacity: 1; transform: translateY(0); }
         .grid-view .action-buttons .primary-btn { flex: 1; padding: 8px 2px; font-size: 13px; text-align: center; }
         .grid-view .file-item.is-dir .action-buttons { display: none; }
 
-        /* РЕЖИМ СПИСКА */
         .file-container.list-view { flex-direction: column; gap: 8px; }
         .list-view .file-item { display: flex; justify-content: space-between; padding: 14px 20px; background: #FFFFFF; border: 1px solid #E5E5EA; align-items: center; transition: 0.2s; cursor: pointer; border-radius: 12px; }
         .list-view .file-item:hover { border-color: #0A84FF; background-color: #F8F9FA; }
@@ -61,13 +54,11 @@
         .list-view .file-size { color: #8E8E93; font-size: 14px; font-weight: 500; min-width: 80px; text-align: right; }
         .list-view .action-buttons { display: flex; align-items: center; }
 
-        /* Стили кнопок */
         .primary-btn { background: #0A84FF; color: #FFF; border: none; padding: 8px 16px; border-radius: 10px; font-size: 13px; font-weight: 700; transition: all 0.2s; cursor: pointer; outline: none; }
         .primary-btn:hover { background: #0B6FE0; box-shadow: 0 4px 12px rgba(10, 132, 255, 0.3); }
         
         .empty-state { text-align: center; color: #8E8E93; padding: 60px 0; width: 100%; font-size: 16px; font-weight: 500; }
 
-        /* Модальное окно предпросмотра */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px); z-index: 100; justify-content: center; align-items: center; padding: 20px; }
         .modal-content { background: #FFFFFF; border-radius: 20px; padding: 25px; max-width: 850px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative; display: flex; flex-direction: column; align-items: center; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
         .close-btn { position: absolute; top: 20px; right: 25px; font-size: 28px; cursor: pointer; color: #8E8E93; background: none; border: none; font-weight: bold; transition: color 0.2s; }
@@ -101,7 +92,6 @@
         </div>
     </div>
 
-    <!-- Модальное окно -->
     <div class="modal" id="preview-modal" onclick="closeModal()">
         <div class="modal-content" onclick="event.stopPropagation()">
             <button class="close-btn" onclick="closeModal()">×</button>
@@ -184,9 +174,10 @@
             }
         }
 
-        // ── Web Share API (ОСНОВНОЕ ДЕЙСТВИЕ) ──
+        // ── Web Share API (Share Sheet) ──
         async function shareFile(name, url, event) {
-            event.stopPropagation(); // Блокируем предпросмотр при клике на кнопку
+            if (event) event.stopPropagation();
+            
             if (navigator.share) {
                 try {
                     await navigator.share({
@@ -195,12 +186,12 @@
                         url: url
                     });
                 } catch (err) {
-                    console.error("Шаринг отменен или произошла ошибка:", err);
+                    console.log("Пользователь закрыл меню шаринга или произошла отмена");
                 }
             } else {
                 try {
                     await navigator.clipboard.writeText(url);
-                    alert("Ссылка скопирована в буфер обмена!");
+                    alert("Ссылка на файл скопирована в буфер обмена!");
                 } catch (err) {
                     console.error("Ошибка копирования:", err);
                 }
@@ -234,7 +225,6 @@
                     else openPreview(file.name, file.download_url);
                 };
 
-                // Единая кнопка Поделиться
                 const actionBtnHtml = !isDir 
                     ? `<button class="primary-btn" onclick="shareFile('${file.name}', '${file.download_url}', event)">🔗 Поделиться</button>` 
                     : ``;
@@ -322,7 +312,6 @@
             
             body.innerHTML = '<div class="empty-state" style="padding: 20px;">Загрузка файла...</div>';
             
-            // В модальном окне тоже только кнопка Поделиться
             footer.innerHTML = `
                 <button class="primary-btn" style="padding: 12px 30px; font-size:15px;" onclick="shareFile('${name}', '${url}', event)">🔗 Поделиться ссылкой</button>
             `;
