@@ -6,65 +6,74 @@
     <title>Мое Облако - KRSU</title>
     <style>
         * { box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #EFF2F7; color: #1C1C1E; margin: 0; padding: 30px 20px; }
-        .container { max-width: 960px; margin: 0 auto; background: #FFFFFF; padding: 25px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #F5F5F7; color: #1D1D1F; margin: 0; padding: 40px 20px; }
+        .container { max-width: 1000px; margin: 0 auto; background: #FFFFFF; padding: 30px; border-radius: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.04); }
         
-        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #EFF2F7; padding-bottom: 20px; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
-        h1 { color: #1C1C1E; font-size: 24px; margin: 0; }
-        .repo-badge { background: #E5E5EA; color: #6E7076; padding: 6px 12px; border-radius: 8px; font-size: 14px; font-weight: bold; }
+        .header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
+        h1 { color: #1D1D1F; font-size: 26px; margin: 0; font-weight: 700; }
+        .repo-badge { background: #F2F2F7; color: #6E7076; padding: 8px 14px; border-radius: 10px; font-size: 14px; font-weight: 600; }
         
+        /* Поиск (сверху) */
+        .search-container { margin-bottom: 25px; }
+        .search-bar { width: 100%; padding: 14px 20px; border-radius: 12px; border: 2px solid #F2F2F7; background: #F9F9FB; font-size: 15px; outline: none; transition: all 0.2s ease; }
+        .search-bar:focus { border-color: #0A84FF; background: #FFFFFF; box-shadow: 0 0 0 4px rgba(10, 132, 255, 0.1); }
+        .search-bar::placeholder { color: #8E8E93; }
+
         /* Панель инструментов */
-        .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
-        .breadcrumbs { font-size: 15px; font-weight: bold; color: #0A84FF; display: flex; align-items: center; gap: 5px; flex: 1; min-width: 200px; }
-        .breadcrumb-item { cursor: pointer; padding: 4px 8px; border-radius: 6px; }
+        .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px; background: #F9F9FB; padding: 12px 20px; border-radius: 14px; }
+        .breadcrumbs { font-size: 15px; font-weight: 600; color: #0A84FF; display: flex; align-items: center; gap: 6px; flex: 1; flex-wrap: wrap; }
+        .breadcrumb-item { cursor: pointer; padding: 6px 10px; border-radius: 8px; transition: background 0.2s; }
         .breadcrumb-item:hover { background: #E5E5EA; }
-        .separator { color: #6E7076; }
+        .separator { color: #8E8E93; }
         
-        .controls { display: flex; gap: 10px; align-items: center; }
-        .search-bar { padding: 10px 15px; border-radius: 10px; border: 1px solid #D1D1D6; font-size: 14px; outline: none; width: 220px; transition: border-color 0.2s; }
-        .search-bar:focus { border-color: #0A84FF; }
-        .view-toggle { display: flex; background: #E5E5EA; border-radius: 10px; overflow: hidden; }
-        .view-btn { background: none; border: none; padding: 10px 15px; cursor: pointer; color: #6E7076; font-weight: bold; font-size: 14px; transition: 0.2s; }
-        .view-btn.active { background: #0A84FF; color: #FFF; }
+        /* Кнопки Плитка/Список */
+        .view-toggle { display: flex; background: #E5E5EA; border-radius: 10px; padding: 3px; }
+        .view-btn { background: transparent; border: none; padding: 8px 16px; cursor: pointer; color: #6E7076; font-weight: 600; font-size: 14px; border-radius: 8px; transition: all 0.2s; }
+        .view-btn.active { background: #FFFFFF; color: #1D1D1F; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
         
         /* Контейнер файлов */
-        .file-container { display: flex; gap: 15px; }
+        .file-container { display: flex; gap: 16px; }
         
-        /* РЕЖИМ СПИСКА */
-        .file-container.list-view { flex-direction: column; gap: 0; }
-        .list-view .file-item { display: flex; justify-content: space-between; padding: 16px; border-bottom: 1px solid #EFF2F7; align-items: center; transition: 0.2s; cursor: pointer; border-radius: 8px; }
-        .list-view .file-item:hover { background-color: #F8F9FA; }
-        .list-view .file-name { font-weight: 600; display: flex; align-items: center; gap: 12px; font-size: 15px; }
-        .list-view .file-actions { display: flex; align-items: center; gap: 20px; }
-        .list-view .file-size { color: #6E7076; font-size: 14px; font-weight: 500; min-width: 70px; text-align: right; }
-        
-        /* РЕЖИМ СЕТКИ */
+        /* РЕЖИМ СЕТКИ (Теперь по умолчанию и красивее) */
         .file-container.grid-view { flex-direction: row; flex-wrap: wrap; }
-        .grid-view .file-item { display: flex; flex-direction: column; align-items: center; justify-content: center; width: calc(25% - 12px); padding: 25px 15px; border: 1px solid #EFF2F7; border-radius: 12px; cursor: pointer; transition: 0.2s; text-align: center; gap: 10px; }
-        @media (max-width: 768px) { .grid-view .file-item { width: calc(33.33% - 10px); } }
-        @media (max-width: 480px) { .grid-view .file-item { width: calc(50% - 8px); } }
-        .grid-view .file-item:hover { background-color: #F8F9FA; border-color: #D1D1D6; transform: translateY(-2px); }
-        .grid-view .file-name { font-weight: 600; font-size: 14px; word-break: break-all; display: flex; flex-direction: column; align-items: center; gap: 10px; }
-        .grid-view .file-icon { font-size: 40px; }
-        .grid-view .file-size { color: #6E7076; font-size: 13px; font-weight: 500; }
-        .grid-view .download-btn { display: none; /* В сетке качаем по клику */ }
-
-        .file-icon { font-size: 24px; }
-        .download-btn { background: #E5E5EA; color: #1C1C1E; border: none; padding: 6px 12px; border-radius: 8px; font-size: 13px; font-weight: bold; transition: 0.2s; z-index: 2; position: relative; }
-        .download-btn:hover { background: #D1D1D6; }
-        .download-btn.primary-btn { background: #0A84FF; color: #FFF; text-decoration: none; display: inline-block; }
-        .download-btn.primary-btn:hover { background: #0B6FE0; }
+        .grid-view .file-item { display: flex; flex-direction: column; align-items: center; justify-content: center; width: calc(25% - 12px); padding: 30px 15px; background: #FFFFFF; border: 1px solid #E5E5EA; border-radius: 16px; cursor: pointer; transition: all 0.2s ease; text-align: center; position: relative; }
+        @media (max-width: 850px) { .grid-view .file-item { width: calc(33.33% - 11px); } }
+        @media (max-width: 550px) { .grid-view .file-item { width: calc(50% - 8px); } }
         
-        .empty-state { text-align: center; color: #6E7076; padding: 40px 0; width: 100%; font-size: 15px; }
+        .grid-view .file-item:hover { border-color: #0A84FF; box-shadow: 0 8px 24px rgba(10, 132, 255, 0.12); transform: translateY(-3px); }
+        .grid-view .file-icon { font-size: 48px; margin-bottom: 15px; }
+        .grid-view .file-name { font-weight: 600; font-size: 14px; word-break: break-word; line-height: 1.4; color: #1D1D1F; margin-bottom: 8px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .grid-view .file-size { color: #8E8E93; font-size: 13px; font-weight: 500; margin-bottom: 15px; }
+        
+        /* Кнопка скачивания в плитке появляется при наведении */
+        .grid-view .download-btn { opacity: 0; transform: translateY(10px); position: absolute; bottom: 15px; width: calc(100% - 30px); text-align: center; }
+        .grid-view .file-item:hover .download-btn { opacity: 1; transform: translateY(0); }
+        .grid-view .file-item.is-dir .download-btn { display: none; }
+
+        /* РЕЖИМ СПИСКА */
+        .file-container.list-view { flex-direction: column; gap: 8px; }
+        .list-view .file-item { display: flex; justify-content: space-between; padding: 14px 20px; background: #FFFFFF; border: 1px solid #E5E5EA; align-items: center; transition: 0.2s; cursor: pointer; border-radius: 12px; }
+        .list-view .file-item:hover { border-color: #0A84FF; background-color: #F8F9FA; }
+        .list-view .file-name { font-weight: 600; display: flex; align-items: center; gap: 15px; font-size: 15px; color: #1D1D1F; }
+        .list-view .file-icon { font-size: 24px; }
+        .list-view .file-actions { display: flex; align-items: center; gap: 25px; }
+        .list-view .file-size { color: #8E8E93; font-size: 14px; font-weight: 500; min-width: 80px; text-align: right; }
+
+        .download-btn { background: #F2F2F7; color: #1D1D1F; border: none; padding: 8px 16px; border-radius: 10px; font-size: 13px; font-weight: 700; transition: all 0.2s; text-decoration: none; display: inline-block; }
+        .download-btn:hover { background: #E5E5EA; }
+        .download-btn.primary-btn { background: #0A84FF; color: #FFF; }
+        .download-btn.primary-btn:hover { background: #0B6FE0; box-shadow: 0 4px 12px rgba(10, 132, 255, 0.3); }
+        
+        .empty-state { text-align: center; color: #8E8E93; padding: 60px 0; width: 100%; font-size: 16px; font-weight: 500; }
 
         /* Модальное окно предпросмотра */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 100; justify-content: center; align-items: center; padding: 20px; }
-        .modal-content { background: #FFF; border-radius: 12px; padding: 20px; max-width: 800px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative; display: flex; flex-direction: column; align-items: center; }
-        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: #6E7076; background: none; border: none; font-weight: bold; }
-        .close-btn:hover { color: #1C1C1E; }
-        .preview-box { margin-top: 15px; width: 100%; text-align: center; }
-        .preview-box img, .preview-box video { max-width: 100%; max-height: 60vh; border-radius: 8px; }
-        .preview-box pre { text-align: left; background: #F8F9FA; padding: 15px; border-radius: 8px; overflow-x: auto; font-size: 14px; max-height: 60vh; white-space: pre-wrap; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px); z-index: 100; justify-content: center; align-items: center; padding: 20px; }
+        .modal-content { background: #FFFFFF; border-radius: 20px; padding: 25px; max-width: 850px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative; display: flex; flex-direction: column; align-items: center; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+        .close-btn { position: absolute; top: 20px; right: 25px; font-size: 28px; cursor: pointer; color: #8E8E93; background: none; border: none; font-weight: bold; transition: color 0.2s; }
+        .close-btn:hover { color: #FF3B30; }
+        .preview-box { margin-top: 20px; width: 100%; text-align: center; }
+        .preview-box img, .preview-box video { max-width: 100%; max-height: 60vh; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+        .preview-box pre { text-align: left; background: #F9F9FB; padding: 20px; border-radius: 12px; border: 1px solid #E5E5EA; overflow-x: auto; font-size: 14px; max-height: 60vh; white-space: pre-wrap; color: #1D1D1F; }
     </style>
 </head>
 <body>
@@ -74,29 +83,32 @@
             <span class="repo-badge">7777users / KRSU</span>
         </div>
         
+        <!-- Поиск теперь сверху -->
+        <div class="search-container">
+            <input type="text" id="search-input" class="search-bar" placeholder="Глобальный поиск файлов по всему облаку...">
+        </div>
+
         <div class="toolbar">
             <div class="breadcrumbs" id="breadcrumbs"></div>
-            <div class="controls">
-                <input type="text" id="search-input" class="search-bar" placeholder="Поиск файлов...">
-                <div class="view-toggle">
-                    <button class="view-btn active" onclick="setViewMode('list')" id="btn-list">Список</button>
-                    <button class="view-btn" onclick="setViewMode('grid')" id="btn-grid">Плитка</button>
-                </div>
+            <!-- Плитка теперь первая -->
+            <div class="view-toggle">
+                <button class="view-btn active" onclick="setViewMode('grid')" id="btn-grid">Плитка</button>
+                <button class="view-btn" onclick="setViewMode('list')" id="btn-list">Список</button>
             </div>
         </div>
 
-        <div class="file-container list-view" id="file-container">
+        <div class="file-container grid-view" id="file-container">
             <div class="empty-state">Подключение к облаку...</div>
         </div>
     </div>
 
     <!-- Модальное окно -->
-    <div class="modal" id="preview-modal">
-        <div class="modal-content">
+    <div class="modal" id="preview-modal" onclick="closeModal()">
+        <div class="modal-content" onclick="event.stopPropagation()">
             <button class="close-btn" onclick="closeModal()">×</button>
-            <h2 id="modal-title" style="margin-top:0; font-size:18px;">Предпросмотр</h2>
+            <h2 id="modal-title" style="margin-top:0; font-size:20px; color:#1D1D1F;">Предпросмотр</h2>
             <div id="modal-body" class="preview-box"></div>
-            <div style="margin-top: 20px;" id="modal-footer"></div>
+            <div style="margin-top: 25px; width: 100%; text-align: center;" id="modal-footer"></div>
         </div>
     </div>
 
@@ -104,18 +116,24 @@
         const username = "7777users";
         const rootRepo = "KRSU";
         
-        let currentPath = rootRepo; // Текущая папка (начинается с корня репозитория)
-        let allFiles = []; // Храним загруженные файлы для поиска
-        let currentViewMode = 'list';
+        let currentPath = rootRepo; 
+        let allFiles = []; 
+        let currentViewMode = 'grid'; // Плитка по умолчанию
+        let searchTimeout;
 
         // Инициализация
-        document.getElementById('search-input').addEventListener('input', renderFiles);
+        document.getElementById('search-input').addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => handleSearch(e.target.value.trim()), 400); // Глобальный поиск с задержкой
+        });
+        
         loadPath(currentPath);
 
+        // ОБЫЧНАЯ ЗАГРУЗКА ПАПКИ
         async function loadPath(path) {
             currentPath = path;
             updateBreadcrumbs();
-            document.getElementById("file-container").innerHTML = '<div class="empty-state">Загрузка...</div>';
+            document.getElementById("file-container").innerHTML = '<div class="empty-state">Загрузка папки...</div>';
             
             const apiUrl = `https://api.github.com/repos/${username}/${rootRepo}/contents/${path}`;
             try {
@@ -124,65 +142,102 @@
                 
                 const files = await response.json();
                 
-                // Фильтруем скрытые
                 allFiles = files.filter(f => !f.name.startsWith('.')).sort((a, b) => {
                     if (a.type === b.type) return a.name.localeCompare(b.name);
                     return a.type === "dir" ? -1 : 1;
                 });
                 
-                renderFiles();
+                renderFiles(allFiles);
             } catch (error) {
                 console.error(error);
                 document.getElementById("file-container").innerHTML = '<div class="empty-state">Ошибка доступа или папка пуста.</div>';
             }
         }
 
-        function renderFiles() {
+        // ГЛОБАЛЬНЫЙ ПОИСК (API: git/trees)
+        async function handleSearch(query) {
+            if (!query) {
+                loadPath(currentPath); // Если поиск пуст, возвращаемся в текущую папку
+                return;
+            }
+            
+            document.getElementById("file-container").innerHTML = '<div class="empty-state">Поиск по всему облаку... 🔍</div>';
+            try {
+                // Рекурсивный запрос всего дерева репозитория
+                const res = await fetch(`https://api.github.com/repos/${username}/${rootRepo}/git/trees/main?recursive=1`);
+                const data = await res.json();
+                
+                if (!data.tree) throw new Error("No tree");
+
+                // Ищем совпадения в путях файлов (игнорируем системные папки .git)
+                let results = data.tree.filter(f => 
+                    f.type === 'blob' && 
+                    !f.path.includes('.git/') &&
+                    f.path.toLowerCase().includes(query.toLowerCase())
+                );
+                
+                // Преобразуем ответ дерева в стандартный формат для функции рендера
+                const searchFiles = results.map(f => ({
+                    name: f.path.split('/').pop(),
+                    path: f.path,
+                    type: 'file',
+                    size: f.size,
+                    download_url: `https://raw.githubusercontent.com/${username}/${rootRepo}/main/${f.path}`
+                }));
+
+                renderFiles(searchFiles);
+            } catch(e) {
+                document.getElementById("file-container").innerHTML = '<div class="empty-state">Ошибка при глобальном поиске.</div>';
+            }
+        }
+
+        // РЕНДЕР ФАЙЛОВ
+        function renderFiles(filesToRender) {
             const container = document.getElementById("file-container");
-            const query = document.getElementById('search-input').value.toLowerCase();
             container.innerHTML = "";
             
-            const filteredFiles = allFiles.filter(f => f.name.toLowerCase().includes(query));
-            
-            if (filteredFiles.length === 0) {
+            if (filesToRender.length === 0) {
                 container.innerHTML = '<div class="empty-state">Ничего не найдено.</div>';
                 return;
             }
 
-            filteredFiles.forEach(file => {
+            filesToRender.forEach(file => {
                 const item = document.createElement("div");
-                item.className = "file-item";
+                item.className = "file-item" + (file.type === 'dir' ? " is-dir" : "");
                 
                 const isDir = file.type === "dir";
                 const icon = isDir ? "📁" : getFileIcon(file.name);
                 
                 let sizeText = "";
-                if (!isDir) {
+                if (!isDir && file.size) {
                     const kb = file.size / 1024;
                     sizeText = kb > 1024 ? (kb / 1024).toFixed(1) + " MB" : kb.toFixed(1) + " KB";
                 }
 
-                // Обработчик клика (папка -> переход, файл -> предпросмотр)
+                // ИСПРАВЛЕНИЕ: Точный контроль всплытия событий
                 item.onclick = (e) => {
-                    if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON') return;
                     if (isDir) loadPath(file.path);
                     else openPreview(file.name, file.download_url);
                 };
 
+                const downloadBtnHtml = !isDir 
+                    ? `<a href="${file.download_url}" class="download-btn primary-btn" target="_blank" download onclick="event.stopPropagation()">Скачать</a>` 
+                    : ``;
+
                 if (currentViewMode === 'list') {
-                    const actionHtml = isDir 
-                        ? `<span class="file-size" style="font-weight:bold;">Папка</span>`
-                        : `<span class="file-size">${sizeText}</span><a href="${file.download_url}" class="download-btn" target="_blank" download>Скачать</a>`;
-                    
                     item.innerHTML = `
                         <div class="file-name"><span class="file-icon">${icon}</span>${file.name}</div>
-                        <div class="file-actions">${actionHtml}</div>
+                        <div class="file-actions">
+                            ${isDir ? `<span class="file-size" style="font-weight:700;">Папка</span>` : `<span class="file-size">${sizeText}</span>`}
+                            ${downloadBtnHtml}
+                        </div>
                     `;
                 } else {
-                    // Режим сетки
                     item.innerHTML = `
-                        <div class="file-name"><span class="file-icon">${icon}</span><span>${file.name}</span></div>
+                        <div class="file-icon">${icon}</div>
+                        <div class="file-name">${file.name}</div>
                         ${!isDir ? `<div class="file-size">${sizeText}</div>` : ''}
+                        ${downloadBtnHtml}
                     `;
                 }
                 container.appendChild(item);
@@ -202,10 +257,14 @@
                 
                 const span = document.createElement("span");
                 span.className = "breadcrumb-item";
-                span.textContent = index === 0 ? "🏠 Корень" : part;
+                // Вместо "Корень" используем имя рабочей папки (название репо)
+                span.textContent = index === 0 ? "🏠 " + rootRepo : part;
                 
                 const pathSnapshot = buildPath;
-                span.onclick = () => loadPath(pathSnapshot);
+                span.onclick = () => {
+                    document.getElementById('search-input').value = ""; // Сброс поиска при клике на навигацию
+                    loadPath(pathSnapshot);
+                };
                 
                 crumbs.appendChild(span);
                 
@@ -220,21 +279,24 @@
 
         function setViewMode(mode) {
             currentViewMode = mode;
-            document.getElementById('btn-list').className = mode === 'list' ? 'view-btn active' : 'view-btn';
             document.getElementById('btn-grid').className = mode === 'grid' ? 'view-btn active' : 'view-btn';
+            document.getElementById('btn-list').className = mode === 'list' ? 'view-btn active' : 'view-btn';
             document.getElementById('file-container').className = `file-container ${mode}-view`;
-            renderFiles();
+            // Перерисовываем с учетом текущих файлов (либо папка, либо результаты поиска)
+            const isSearching = document.getElementById('search-input').value.trim() !== "";
+            if (!isSearching) renderFiles(allFiles);
+            else handleSearch(document.getElementById('search-input').value.trim());
         }
 
         function getFileIcon(filename) {
             const ext = filename.split('.').pop().toLowerCase();
             const icons = {
-                'jpg': '🖼️', 'jpeg': '🖼️', 'png': '🖼️', 'gif': '🖼️',
+                'jpg': '🖼️', 'jpeg': '🖼️', 'png': '🖼️', 'gif': '🖼️', 'webp': '🖼️',
                 'mp4': '🎞️', 'avi': '🎞️', 'mov': '🎞️',
                 'mp3': '🎵', 'wav': '🎵',
                 'pdf': '📕',
-                'zip': '📦', 'rar': '📦',
-                'txt': '📝', 'md': '📝', 'json': '⚙️', 'py': '🐍'
+                'zip': '📦', 'rar': '📦', '7z': '📦',
+                'txt': '📝', 'md': '📝', 'json': '⚙️', 'py': '🐍', 'js': '📜', 'html': '🌐'
             };
             return icons[ext] || '📄';
         }
@@ -246,8 +308,9 @@
             const body = document.getElementById('modal-body');
             const footer = document.getElementById('modal-footer');
             
-            body.innerHTML = "Загрузка...";
-            footer.innerHTML = `<a href="${url}" class="download-btn primary-btn" target="_blank" download>⬇ Скачать файл</a>`;
+            body.innerHTML = '<div class="empty-state" style="padding: 20px;">Загрузка файла...</div>';
+            // И здесь тоже блокируем всплытие при скачивании из модального окна
+            footer.innerHTML = `<a href="${url}" class="download-btn primary-btn" style="padding: 12px 30px; font-size:15px;" target="_blank" download onclick="event.stopPropagation()">⬇ Скачать файл</a>`;
             modal.style.display = 'flex';
 
             const ext = name.split('.').pop().toLowerCase();
@@ -262,16 +325,16 @@
                     const text = await res.text();
                     body.innerHTML = `<pre>${escapeHtml(text)}</pre>`;
                 } catch (e) {
-                    body.innerHTML = "Ошибка загрузки текста.";
+                    body.innerHTML = '<div class="empty-state">Ошибка загрузки текста.</div>';
                 }
             } else {
-                body.innerHTML = `<div class="empty-state">Предпросмотр недоступен для этого формата.</div>`;
+                body.innerHTML = `<div class="empty-state" style="padding: 30px;">Предпросмотр недоступен для формата .${ext.toUpperCase()}<br><br>Пожалуйста, скачайте файл для просмотра.</div>`;
             }
         }
 
         function closeModal() {
             document.getElementById('preview-modal').style.display = 'none';
-            document.getElementById('modal-body').innerHTML = ""; // Останавливаем видео
+            document.getElementById('modal-body').innerHTML = ""; 
         }
 
         function escapeHtml(unsafe) {
