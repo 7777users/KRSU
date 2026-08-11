@@ -6,7 +6,28 @@
     <title>Мое Облако - KRSU</title>
     <style>
         * { box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #F5F5F7; color: #1D1D1F; margin: 0; padding: 40px 20px; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #F5F5F7; color: #1D1D1F; margin: 0; padding: 0; min-height: 100vh; }
+        
+        /* ── ЭКРАН БЛОКИРОВКИ ── */
+        #lock-screen { position: fixed; inset: 0; background: #F5F5F7; z-index: 9999; display: flex; align-items: center; justify-content: center; flex-direction: column; cursor: pointer; }
+        .lock-container { text-align: center; padding: 20px; transition: transform 0.3s; }
+        .lock-title { color: #1D1D1F; font-size: 24px; margin-bottom: 30px; font-weight: 600; letter-spacing: 0.5px; }
+        .pin-display { display: flex; gap: 20px; justify-content: center; margin-bottom: 20px; }
+        .pin-dot { width: 18px; height: 18px; border-radius: 50%; border: 2px solid #D1D1D6; background: transparent; transition: all 0.15s ease-in-out; }
+        .pin-dot.filled { background: #1D1D1F; border-color: #1D1D1F; }
+        .pin-dot.error { background: #FF3B30 !important; border-color: #FF3B30 !important; }
+        
+        #hidden-pin { position: absolute; opacity: 0; z-index: -1; font-size: 16px; top: 0; left: 0; pointer-events: none; }
+        
+        .shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-12px); }
+            40%, 80% { transform: translateX(12px); }
+        }
+
+        /* ── ОСНОВНОЙ ИНТЕРФЕЙС ── */
+        #app-content { padding: 40px 20px; display: none; }
         .container { max-width: 1000px; margin: 0 auto; background: #FFFFFF; padding: 30px; border-radius: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.04); }
         
         .header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
@@ -30,6 +51,7 @@
         
         .file-container { display: flex; gap: 16px; }
         
+        /* РЕЖИМ СЕТКИ */
         .file-container.grid-view { flex-direction: row; flex-wrap: wrap; }
         .grid-view .file-item { display: flex; flex-direction: column; align-items: center; justify-content: center; width: calc(25% - 12px); padding: 30px 15px 55px 15px; background: #FFFFFF; border: 1px solid #E5E5EA; border-radius: 16px; cursor: pointer; transition: all 0.2s ease; text-align: center; position: relative; }
         @media (max-width: 850px) { .grid-view .file-item { width: calc(33.33% - 11px); } }
@@ -42,9 +64,9 @@
         
         .grid-view .action-buttons { opacity: 0; transform: translateY(10px); position: absolute; bottom: 12px; width: calc(100% - 24px); left: 12px; display: flex; transition: all 0.2s ease; }
         .grid-view .file-item:hover .action-buttons { opacity: 1; transform: translateY(0); }
-        .grid-view .action-buttons .primary-btn { flex: 1; padding: 8px 2px; font-size: 13px; text-align: center; }
         .grid-view .file-item.is-dir .action-buttons { display: none; }
 
+        /* РЕЖИМ СПИСКА */
         .file-container.list-view { flex-direction: column; gap: 8px; }
         .list-view .file-item { display: flex; justify-content: space-between; padding: 14px 20px; background: #FFFFFF; border: 1px solid #E5E5EA; align-items: center; transition: 0.2s; cursor: pointer; border-radius: 12px; }
         .list-view .file-item:hover { border-color: #0A84FF; background-color: #F8F9FA; }
@@ -52,13 +74,15 @@
         .list-view .file-icon { font-size: 24px; }
         .list-view .file-actions { display: flex; align-items: center; gap: 20px; }
         .list-view .file-size { color: #8E8E93; font-size: 14px; font-weight: 500; min-width: 80px; text-align: right; }
-        .list-view .action-buttons { display: flex; align-items: center; }
+        .list-view .action-buttons { display: flex; align-items: center; width: 160px; }
 
-        .primary-btn { background: #0A84FF; color: #FFF; border: none; padding: 8px 16px; border-radius: 10px; font-size: 13px; font-weight: 700; transition: all 0.2s; cursor: pointer; outline: none; }
+        .primary-btn { background: #0A84FF; color: #FFF; border: none; padding: 8px 12px; border-radius: 10px; font-size: 13px; font-weight: 700; transition: all 0.2s; cursor: pointer; outline: none; }
         .primary-btn:hover { background: #0B6FE0; box-shadow: 0 4px 12px rgba(10, 132, 255, 0.3); }
+        .primary-btn:disabled { background: #A2A2A6 !important; box-shadow: none !important; cursor: not-allowed; }
         
         .empty-state { text-align: center; color: #8E8E93; padding: 60px 0; width: 100%; font-size: 16px; font-weight: 500; }
 
+        /* Модальное окно предпросмотра */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px); z-index: 100; justify-content: center; align-items: center; padding: 20px; }
         .modal-content { background: #FFFFFF; border-radius: 20px; padding: 25px; max-width: 850px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative; display: flex; flex-direction: column; align-items: center; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
         .close-btn { position: absolute; top: 20px; right: 25px; font-size: 28px; cursor: pointer; color: #8E8E93; background: none; border: none; font-weight: bold; transition: color 0.2s; }
@@ -69,26 +93,44 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>☁️ Мои файлы</h1>
-            <span class="repo-badge">7777users / KRSU</span>
-        </div>
-        
-        <div class="search-container">
-            <input type="text" id="search-input" class="search-bar" placeholder="Глобальный поиск файлов по всему облаку...">
-        </div>
 
-        <div class="toolbar">
-            <div class="breadcrumbs" id="breadcrumbs"></div>
-            <div class="view-toggle">
-                <button class="view-btn active" onclick="setViewMode('grid')" id="btn-grid">Плитка</button>
-                <button class="view-btn" onclick="setViewMode('list')" id="btn-list">Список</button>
+    <!-- ── ЭКРАН ПИН-КОДА ── -->
+    <div id="lock-screen" onclick="document.getElementById('hidden-pin').focus()">
+        <div class="lock-container" id="lock-container">
+            <div class="lock-title">Введите ПИН-код</div>
+            <div class="pin-display" id="pin-display">
+                <div class="pin-dot"></div>
+                <div class="pin-dot"></div>
+                <div class="pin-dot"></div>
+                <div class="pin-dot"></div>
             </div>
+            <input type="password" inputmode="numeric" pattern="[0-9]*" id="hidden-pin" maxlength="4" autocomplete="off" autofocus>
         </div>
+    </div>
 
-        <div class="file-container grid-view" id="file-container">
-            <div class="empty-state">Подключение к облаку...</div>
+    <!-- ── ОСНОВНОЙ КОНТЕНТ ── -->
+    <div id="app-content">
+        <div class="container">
+            <div class="header">
+                <h1>☁️ Мои файлы</h1>
+                <span class="repo-badge">7777users / KRSU</span>
+            </div>
+            
+            <div class="search-container">
+                <input type="text" id="search-input" class="search-bar" placeholder="Глобальный поиск файлов по всему облаку...">
+            </div>
+
+            <div class="toolbar">
+                <div class="breadcrumbs" id="breadcrumbs"></div>
+                <div class="view-toggle">
+                    <button class="view-btn active" onclick="setViewMode('grid')" id="btn-grid">Плитка</button>
+                    <button class="view-btn" onclick="setViewMode('list')" id="btn-list">Список</button>
+                </div>
+            </div>
+
+            <div class="file-container grid-view" id="file-container">
+                <div class="empty-state">Подключение к облаку...</div>
+            </div>
         </div>
     </div>
 
@@ -110,12 +152,46 @@
         let currentViewMode = 'grid'; 
         let searchTimeout;
 
+        // ── ЛОГИКА ЭКРАНА БЛОКИРОВКИ ──
+        const hiddenPin = document.getElementById('hidden-pin');
+        const dots = document.querySelectorAll('.pin-dot');
+        const lockContainer = document.getElementById('lock-container');
+
+        hiddenPin.addEventListener('input', (e) => {
+            const val = e.target.value;
+            dots.forEach((dot, index) => {
+                dot.className = 'pin-dot';
+                if (index < val.length) dot.classList.add('filled');
+            });
+
+            if (val.length === 4) {
+                // Обфускация: 9797
+                if ((parseInt(val, 10) ^ 43981) === 34504) {
+                    document.getElementById('lock-screen').style.display = 'none';
+                    document.getElementById('app-content').style.display = 'block';
+                    hiddenPin.blur();
+                    loadPath(currentPath);
+                } else {
+                    lockContainer.classList.add('shake');
+                    dots.forEach(dot => dot.classList.add('error'));
+                    hiddenPin.disabled = true;
+                    setTimeout(() => {
+                        lockContainer.classList.remove('shake');
+                        dots.forEach(dot => dot.className = 'pin-dot');
+                        hiddenPin.value = '';
+                        hiddenPin.disabled = false;
+                        hiddenPin.focus();
+                    }, 400);
+                }
+            }
+        });
+        
+        window.addEventListener('load', () => hiddenPin.focus());
+
         document.getElementById('search-input').addEventListener('input', (e) => {
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => handleSearch(e.target.value.trim()), 400); 
         });
-        
-        loadPath(currentPath);
 
         async function loadPath(path) {
             currentPath = path;
@@ -128,15 +204,12 @@
                 if (!response.ok) throw new Error("API Error");
                 
                 const files = await response.json();
-                
                 allFiles = files.filter(f => !f.name.startsWith('.')).sort((a, b) => {
                     if (a.type === b.type) return a.name.localeCompare(b.name);
                     return a.type === "dir" ? -1 : 1;
                 });
-                
                 renderFiles(allFiles);
             } catch (error) {
-                console.error(error);
                 document.getElementById("file-container").innerHTML = '<div class="empty-state">Ошибка доступа или папка пуста.</div>';
             }
         }
@@ -146,18 +219,14 @@
                 loadPath(currentPath);
                 return;
             }
-            
             document.getElementById("file-container").innerHTML = '<div class="empty-state">Поиск по всему облаку... 🔍</div>';
             try {
                 const res = await fetch(`https://api.github.com/repos/${username}/${rootRepo}/git/trees/main?recursive=1`);
                 const data = await res.json();
-                
                 if (!data.tree) throw new Error("No tree");
 
                 let results = data.tree.filter(f => 
-                    f.type === 'blob' && 
-                    !f.path.includes('.git/') &&
-                    f.path.toLowerCase().includes(query.toLowerCase())
+                    f.type === 'blob' && !f.path.includes('.git/') && f.path.toLowerCase().includes(query.toLowerCase())
                 );
                 
                 const searchFiles = results.map(f => ({
@@ -167,34 +236,55 @@
                     size: f.size,
                     download_url: `https://raw.githubusercontent.com/${username}/${rootRepo}/main/${f.path}`
                 }));
-
                 renderFiles(searchFiles);
             } catch(e) {
                 document.getElementById("file-container").innerHTML = '<div class="empty-state">Ошибка при глобальном поиске.</div>';
             }
         }
 
-        // ── Web Share API (Share Sheet) ──
+        // ── Web Share API ──
         async function shareFile(name, url, event) {
             if (event) event.stopPropagation();
-            
             if (navigator.share) {
-                try {
-                    await navigator.share({
-                        title: name,
-                        text: `Файл из облака: ${name}`,
-                        url: url
-                    });
-                } catch (err) {
-                    console.log("Пользователь закрыл меню шаринга или произошла отмена");
-                }
+                try { await navigator.share({ title: name, text: `Файл: ${name}`, url: url }); } catch (err) {}
             } else {
                 try {
                     await navigator.clipboard.writeText(url);
-                    alert("Ссылка на файл скопирована в буфер обмена!");
-                } catch (err) {
-                    console.error("Ошибка копирования:", err);
-                }
+                    alert("Ссылка скопирована в буфер обмена!");
+                } catch (err) {}
+            }
+        }
+
+        // ── ФУНКЦИЯ ПРИНУДИТЕЛЬНОГО СКАЧИВАНИЯ БЕЗ ПЕРЕАДРЕСАЦИИ ──
+        async function forceDownload(name, url, event) {
+            if (event) event.stopPropagation();
+            const btn = event.currentTarget;
+            const originalText = btn.innerHTML;
+            
+            btn.innerHTML = "⏳...";
+            btn.disabled = true;
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error("Ошибка сети");
+                const blob = await response.blob();
+                const blobUrl = window.URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = blobUrl;
+                a.download = name; // Атрибут работает для Blob ссылок
+                document.body.appendChild(a);
+                a.click();
+                
+                window.URL.revokeObjectURL(blobUrl);
+                a.remove();
+            } catch (error) {
+                console.error("Ошибка скачивания:", error);
+                alert("Ошибка скачивания. Файл недоступен.");
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
             }
         }
 
@@ -225,8 +315,12 @@
                     else openPreview(file.name, file.download_url);
                 };
 
+                // ДОБАВЛЕНЫ ОБЕ КНОПКИ РЯДОМ
                 const actionBtnHtml = !isDir 
-                    ? `<button class="primary-btn" onclick="shareFile('${file.name}', '${file.download_url}', event)">🔗 Поделиться</button>` 
+                    ? `<div style="display:flex; gap:6px; width:100%;">
+                         <button class="primary-btn" style="flex:1; background:#E5E5EA; color:#1D1D1F;" onclick="shareFile('${file.name}', '${file.download_url}', event)">🔗</button>
+                         <button class="primary-btn" style="flex:3;" onclick="forceDownload('${file.name}', '${file.download_url}', event)">⬇ Скачать</button>
+                       </div>` 
                     : ``;
 
                 if (currentViewMode === 'list') {
@@ -252,26 +346,20 @@
         function updateBreadcrumbs() {
             const crumbs = document.getElementById("breadcrumbs");
             crumbs.innerHTML = "";
-            
             const parts = currentPath.split('/');
             let buildPath = "";
-            
             parts.forEach((part, index) => {
                 if (index > 0) buildPath += "/";
                 buildPath += part;
-                
                 const span = document.createElement("span");
                 span.className = "breadcrumb-item";
                 span.textContent = index === 0 ? "🏠 " + rootRepo : part;
-                
                 const pathSnapshot = buildPath;
                 span.onclick = () => {
                     document.getElementById('search-input').value = ""; 
                     loadPath(pathSnapshot);
                 };
-                
                 crumbs.appendChild(span);
-                
                 if (index < parts.length - 1) {
                     const sep = document.createElement("span");
                     sep.className = "separator";
@@ -312,13 +400,16 @@
             
             body.innerHTML = '<div class="empty-state" style="padding: 20px;">Загрузка файла...</div>';
             
+            // В окне предпросмотра также размещаем обе кнопки
             footer.innerHTML = `
-                <button class="primary-btn" style="padding: 12px 30px; font-size:15px;" onclick="shareFile('${name}', '${url}', event)">🔗 Поделиться ссылкой</button>
+                <div style="display: flex; gap: 15px; justify-content: center; width: 100%;">
+                    <button class="primary-btn" style="background:#E5E5EA; color:#1D1D1F; padding: 12px 20px; font-size:15px;" onclick="shareFile('${name}', '${url}', event)">🔗 Поделиться</button>
+                    <button class="primary-btn" style="padding: 12px 30px; font-size:15px;" onclick="forceDownload('${name}', '${url}', event)">⬇ Скачать файл</button>
+                </div>
             `;
             modal.style.display = 'flex';
 
             const ext = name.split('.').pop().toLowerCase();
-            
             if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) {
                 body.innerHTML = `<img src="${url}" alt="${name}">`;
             } else if (['mp4', 'webm', 'ogg'].includes(ext)) {
