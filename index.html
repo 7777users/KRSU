@@ -94,7 +94,8 @@
 </head>
 <body>
 
-    <div class="version-badge">Обновлено: 11.08.26 22:18</div>
+    <!-- Обрати внимание на id="version-badge" -->
+    <div class="version-badge" id="version-badge">Обновлено: 11.08.26 22:39</div>
 
     <div id="lock-screen" onclick="document.getElementById('hidden-pin').focus()">
         <div class="lock-container" id="lock-container">
@@ -152,6 +153,29 @@
         let currentViewMode = 'grid'; 
         let searchTimeout;
 
+        // ── АВТО-ОБНОВЛЕНИЕ ДАТЫ ЧЕРЕЗ GITHUB API ──
+        async function fetchLastUpdateTime() {
+            try {
+                // Спрашиваем GitHub, когда был последний коммит (выгрузка или очистка)
+                const res = await fetch(`https://api.github.com/repos/${username}/${rootRepo}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    const date = new Date(data.pushed_at);
+                    
+                    const day = String(date.getDate()).padStart(2, '0');
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const year = String(date.getFullYear()).slice(-2);
+                    const hours = String(date.getHours()).padStart(2, '0');
+                    const minutes = String(date.getMinutes()).padStart(2, '0');
+                    
+                    // Моментально меняем дату на экране
+                    document.getElementById('version-badge').innerText = `Обновлено: ${day}.${month}.${year} ${hours}:${minutes}`;
+                }
+            } catch (e) {
+                // Если API недоступно, останется базовая дата дизайна
+            }
+        }
+        
         // ── ЛОГИКА ЭКРАНА БЛОКИРОВКИ ──
         const hiddenPin = document.getElementById('hidden-pin');
         const dots = document.querySelectorAll('.pin-dot');
@@ -164,16 +188,16 @@
                 if (index < val.length) dot.classList.add('filled');
             });
 
-            // Когда введено 4 цифры
             if (val.length === 4) {
-                // Переменная со случайным именем, в которую Python подставит ПИН-код
-                const _accessHashGate = "9797"; 
+                const _accessHashGate = "0000"; 
                 
                 if (val === _accessHashGate) {
                     document.getElementById('lock-screen').style.display = 'none';
                     document.getElementById('app-content').style.display = 'block';
                     hiddenPin.blur();
                     loadPath(currentPath);
+                    // Обновляем бейдж даты после успешного ввода пинкода
+                    fetchLastUpdateTime();
                 } else {
                     lockContainer.classList.add('shake');
                     dots.forEach(dot => dot.classList.add('error'));
