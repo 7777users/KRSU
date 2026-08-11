@@ -26,8 +26,11 @@
             40%, 80% { transform: translateX(12px); }
         }
 
+        /* ── ВЕРСИЯ САЙТА ── */
+        .version-badge { position: fixed; bottom: 15px; right: 15px; background: rgba(0,0,0,0.06); color: #8E8E93; padding: 6px 10px; border-radius: 8px; font-size: 12px; font-weight: bold; z-index: 1000; pointer-events: none; }
+
         /* ── ОСНОВНОЙ ИНТЕРФЕЙС ── */
-        #app-content { padding: 40px 20px; display: none; }
+        #app-content { padding: 40px 20px; display: none; padding-bottom: 60px; }
         .container { max-width: 1000px; margin: 0 auto; background: #FFFFFF; padding: 30px; border-radius: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.04); }
         
         .header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
@@ -93,6 +96,8 @@
     </style>
 </head>
 <body>
+
+    <div class="version-badge">V1.1</div>
 
     <!-- ── ЭКРАН ПИН-КОДА ── -->
     <div id="lock-screen" onclick="document.getElementById('hidden-pin').focus()">
@@ -244,7 +249,10 @@
 
         // ── Web Share API ──
         async function shareFile(name, url, event) {
-            if (event) event.stopPropagation();
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
             if (navigator.share) {
                 try { await navigator.share({ title: name, text: `Файл: ${name}`, url: url }); } catch (err) {}
             } else {
@@ -257,7 +265,10 @@
 
         // ── ФУНКЦИЯ ПРИНУДИТЕЛЬНОГО СКАЧИВАНИЯ БЕЗ ПЕРЕАДРЕСАЦИИ ──
         async function forceDownload(name, url, event) {
-            if (event) event.stopPropagation();
+            if (event) {
+                event.preventDefault(); // Блокируем стандартный переход браузера
+                event.stopPropagation();
+            }
             const btn = event.currentTarget;
             const originalText = btn.innerHTML;
             
@@ -265,6 +276,7 @@
             btn.disabled = true;
 
             try {
+                // Пытаемся загрузить файл как Blob объект
                 const response = await fetch(url);
                 if (!response.ok) throw new Error("Ошибка сети");
                 const blob = await response.blob();
@@ -273,15 +285,22 @@
                 const a = document.createElement('a');
                 a.style.display = 'none';
                 a.href = blobUrl;
-                a.download = name; // Атрибут работает для Blob ссылок
+                a.download = name; // Атрибут работает только для локальных/Blob ссылок
                 document.body.appendChild(a);
                 a.click();
                 
                 window.URL.revokeObjectURL(blobUrl);
                 a.remove();
             } catch (error) {
-                console.error("Ошибка скачивания:", error);
-                alert("Ошибка скачивания. Файл недоступен.");
+                console.error("Ошибка скачивания Blob:", error);
+                // Запасной план: открыть в новой вкладке с параметром загрузки
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = name;
+                a.target = '_blank';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
             } finally {
                 btn.innerHTML = originalText;
                 btn.disabled = false;
@@ -315,10 +334,10 @@
                     else openPreview(file.name, file.download_url);
                 };
 
-                // ДОБАВЛЕНЫ ОБЕ КНОПКИ РЯДОМ
+                // ДОБАВЛЕНЫ ОБЕ КНОПКИ РЯДОМ С НОВЫМ FORCE DOWNLOAD
                 const actionBtnHtml = !isDir 
                     ? `<div style="display:flex; gap:6px; width:100%;">
-                         <button class="primary-btn" style="flex:1; background:#E5E5EA; color:#1D1D1F;" onclick="shareFile('${file.name}', '${file.download_url}', event)">🔗</button>
+                         <button class="primary-btn share-btn" style="flex:1; background:#E5E5EA; color:#1D1D1F;" onclick="shareFile('${file.name}', '${file.download_url}', event)">🔗</button>
                          <button class="primary-btn" style="flex:3;" onclick="forceDownload('${file.name}', '${file.download_url}', event)">⬇ Скачать</button>
                        </div>` 
                     : ``;
@@ -400,7 +419,6 @@
             
             body.innerHTML = '<div class="empty-state" style="padding: 20px;">Загрузка файла...</div>';
             
-            // В окне предпросмотра также размещаем обе кнопки
             footer.innerHTML = `
                 <div style="display: flex; gap: 15px; justify-content: center; width: 100%;">
                     <button class="primary-btn" style="background:#E5E5EA; color:#1D1D1F; padding: 12px 20px; font-size:15px;" onclick="shareFile('${name}', '${url}', event)">🔗 Поделиться</button>
